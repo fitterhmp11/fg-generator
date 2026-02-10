@@ -1,0 +1,70 @@
+{# --- 1. Global & System Settings --- #}
+config system global
+    set admin-ssh-grace-time 30
+    set admintimeout 15
+    set gui-auto-upgrade-setup-warning disable
+    set hostname "{{ hostname }}"
+    set timezone {{ timezone }}
+end
+
+{# --- 2. Admin Accounts & Trusthosts --- #}
+config system admin
+    edit "admin"
+        set password {{ admin_password }}
+        {% include 'trusthosts.j2' %}
+        set accprofile "super_admin"
+        set gui-ignore-release-overview-version "7.4"
+    next
+    edit "omnisupport"
+        set password {{ omnisupport_password }}
+        {% include 'trusthosts.j2' %}
+        set accprofile "super_admin"
+        set gui-ignore-release-overview-version "7.4"
+    next
+end
+
+{# --- 3. Interfaces & Routing --- #}
+{% include 'interfaces.j2' %}
+{% include 'routing.j2' %}
+
+{# --- 4. System Services (NTP/Logging) --- #}
+config system ntp
+    set ntpsync enable
+    set server-mode enable
+    {# Updated to lowercase: role, vlan_id, physical_port #}
+    set interface {% for row in interfaces %}{% if row.role|lower == 'lan' %}{% if row.vlan_id and row.vlan_id != '' %}"VLAN-{{ row.vlan_id|int }}" {% else %}"{{ row.physical_port }}" {% endif %}{% endif %}{% endfor %}
+end
+
+{# --- 5. Standard settings with no variable --- #}
+config log fortianalyzer setting
+    set status enable
+    set server "faz01.myomnidata.com"
+end
+
+config vpn ssl settings
+    set status disable
+end
+
+config system settings
+    set gui-dos-policy enable
+    set gui-dynamic-routing enable
+    set gui-allow-unnamed-policy enable
+end
+
+config system accprofile
+    edit "read-only"
+        set secfabgrp read
+        set ftviewgrp read
+        set authgrp read
+        set sysgrp read
+        set netgrp read
+        set loggrp read
+        set fwgrp read
+        set vpngrp read
+        set utmgrp read
+        set wifi read
+    next
+end
+
+{# --- 6. Security Baseline (UTM and FW Address) --- #}
+{% include 'security_baseline.j2' %}

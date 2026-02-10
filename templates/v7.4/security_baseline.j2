@@ -1,0 +1,215 @@
+{# Firewall address, services, and UTM that can be applied to policies #}
+
+config firewall address
+    edit "Omni-Secure-Subnet_104"
+        set subnet 104.226.189.0 255.255.255.0
+    next
+    edit "rfc-1918_10.x"
+        set subnet 10.0.0.0 255.0.0.0
+    next
+    edit "rfc-1918_172.16.x"
+        set subnet 172.16.0.0 255.240.0.0
+    next
+    edit "rfc-1918_192.168.x"
+        set subnet 192.168.0.0 255.255.0.0
+    next
+end
+
+config firewall addrgrp
+    edit "rfc-1918_grp"
+        set member "rfc-1918_192.168.x" "rfc-1918_172.16.x" "rfc-1918_10.x"
+    next
+end
+
+config firewall service custom
+    edit "NetBios-Service"
+        set tcp-portrange 137 139
+        set udp-portrange 137-139
+    next
+end
+
+config firewall service group
+    edit "Block-Outbound"
+        set member "NetBios-Service" "SMB"
+    next
+end
+
+
+config antivirus profile
+    edit "Standard-Outbound"
+        config http
+            set av-scan block
+            set quarantine enable
+        end
+        config ftp
+            set av-scan block
+            set quarantine enable
+        end
+        config imap
+            set av-scan block
+            set quarantine enable
+        end
+        config pop3
+            set av-scan block
+            set quarantine enable
+        end
+        config smtp
+            set av-scan block
+            set quarantine enable
+        end
+        config cifs
+            set av-scan block
+            set quarantine enable
+        end
+    next
+end
+
+
+
+config webfilter profile
+    edit "Standard-Outbound"
+        config ftgd-wf
+            set options error-allow
+            config filters
+                edit 1
+                    set category 1
+                next
+                edit 2
+                    set category 3
+                next
+                edit 3
+                    set category 4
+                next
+                edit 4
+                    set category 5
+                next
+                edit 5
+                    set category 6
+                next
+                edit 6
+                    set category 12
+                next
+                edit 7
+                    set category 59
+                next
+                edit 8
+                    set category 62
+                next
+                edit 9
+                    set category 83
+                    set action block
+                next
+                edit 10
+                    set category 96
+                    set action block
+                next
+                edit 11
+                    set category 98
+                    set action block
+                next
+                edit 12
+                    set category 99
+                    set action block
+                next
+                edit 13
+                    set category 2
+                next
+                edit 14
+                    set category 7
+                next
+                edit 15
+                    set category 8
+                next
+                edit 16
+                    set category 9
+                next
+                edit 17
+                    set category 11
+                next
+                edit 18
+                    set category 13
+                next
+                edit 19
+                    set category 14
+                    set action block
+                next
+                edit 20
+                    set category 15
+                next
+                edit 21
+                    set category 16
+                next
+                edit 22
+                    set category 57
+                next
+                edit 23
+                    set category 63
+                next
+                edit 24
+                    set category 64
+                next
+                edit 25
+                    set category 65
+                next
+                edit 26
+                    set category 66
+                next
+                edit 27
+                    set category 67
+                next
+                edit 28
+                    set category 26
+                    set action block
+                next
+                edit 29
+                    set category 61
+                    set action block
+                next
+                edit 30
+                    set category 86
+                    set action block
+                next
+                edit 31
+                    set category 88
+                    set action block
+                next
+                edit 32
+                    set category 90
+                next
+                edit 33
+                    set category 91
+                next
+            end
+        end
+    next
+end
+
+
+
+config ips sensor
+    edit "Standard-Outbound"
+        set block-malicious-url enable
+        set scan-botnet-connections block
+        config entries
+            edit 1
+                set location server client
+                set severity high critical
+            next
+        end
+    next
+end
+
+
+config application list
+    edit "Standard-Outbound"
+        set other-application-log enable
+        config entries
+            edit 1
+                set category 2 6
+            next
+        end
+    next
+end
+
+
+

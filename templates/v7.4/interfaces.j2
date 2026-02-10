@@ -1,0 +1,29 @@
+config system interface
+{%- for row in interfaces %}
+    {%- if row.vlan_id and row.vlan_id != '' %}
+    edit "VLAN-{{ row.vlan_id|int }}"
+        set interface "{{ row.physical_port }}"
+        set vlanid {{ row.vlan_id|int }}
+    {%- else %}
+    edit "{{ row.physical_port }}"
+    {%- endif %}
+        set vdom "root"
+        set alias "{{ row.local_name }}"
+        set allowaccess {{ row.allow_access|default('ping https') }}
+        {%- if row.ip_address and row.netmask %}
+        set ip {{ row.ip_address }} {{ row.netmask }}
+        {%- endif %}
+        set role {{ row.role|lower|default('lan') }}
+        {%- if not row.vlan_id or row.vlan_id == '' -%}
+            {%- if row.role|lower == 'lan' %}
+        set device-identification enable
+        set lldp-reception enable
+        set lldp-transmission enable
+            {%- elif row.role|lower == 'wan' %}
+        set lldp-reception disable
+        set lldp-transmission disable
+            {%- endif %}
+        {%- endif %}
+    next
+{%- endfor %}
+end

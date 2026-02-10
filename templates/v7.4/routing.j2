@@ -1,0 +1,12 @@
+config router static
+{%- for row in interfaces %}
+    {# Only generate a route if the role is WAN and a gateway IP exists #}
+    {%- if row.role|lower == 'wan' and row.default_gateway and row.default_gateway != '' %}
+    edit 0
+        set gateway {{ row.default_gateway }}
+        {# Determine if we should point to a VLAN interface or the Physical Port #}
+        set device "{% if row.vlan_id and row.vlan_id != '' %}VLAN-{{ row.vlan_id|int }}{% else %}{{ row.physical_port }}{% endif %}"
+    next
+    {%- endif %}
+{%- endfor %}
+end
